@@ -1,15 +1,22 @@
-import "./globals.css";
-import type { Metadata } from "next";
+// 서버 컴포넌트에서
+import { getServerSession } from "next-auth";
+import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "CodingFriends",
-  description: "CodingFriends — test",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession();
   return (
     <html lang="ko">
-      <body style={{ margin: 0, fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif" }}>
+      <body>
+        <header className="p-4 border-b flex gap-4">
+          <Link href="/">CF26</Link>
+          <nav className="ml-auto">
+            {session?.user ? (
+              <span>Hi, {session.user.name ?? "User"} ({session.user.role})</span>
+            ) : (
+              <Link href="/signin">Sign in</Link>
+            )}
+          </nav>
+        </header>
         {children}
       </body>
     </html>
