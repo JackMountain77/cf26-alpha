@@ -1,28 +1,43 @@
-export const runtime = "nodejs";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import type { AppRole } from "@/types/next-auth"; // 위에서 선언한 타입
+import type { AdapterUser } from "next-auth/adapters";
+
+export const runtime = "nodejs";
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "database" }, // 세션 DB 저장(안정적)
+  session: { strategy: "database" },
+
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+
   callbacks: {
-    async session({ session, user }) {
-      // 세션에 role 포함
-      if (session.user) (session.user as any).role = user.role;
+    // JWT에 role을 먼저 싣고
+    async jwt({ token, user }) {
+      if (user) {
+        const u = user as AdapterUser & { role?: AppRole };
+        token.role = u.role;
+      }
+      return token;
+    },
+
+    // Session으로 role을 안전하게 복사
+    async session({ session, token }) {
+      if (session.user && token.role) {
+        session.user.role = token.role as AppRole;
+      }
       return session;
     },
   },
-  pages: {
-    signIn: "/signin", // 선택: 커스텀 로그인 페이지 사용 시
-  },
+
+  pages: { signIn: "/signin" },
   secret: process.env.NEXTAUTH_SECRET,
 });
 
