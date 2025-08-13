@@ -8,6 +8,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "preinstall": "only-allow pnpm",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -32,6 +33,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
+    "only-allow": "^1.2.1",
     "prisma": "^6.13.0",
     "tailwindcss": "^4",
     "typescript": "^5"

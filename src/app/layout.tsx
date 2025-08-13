@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="border-b">
           <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
             <Link href="/" className="font-semibold text-xl tracking-tight">
-              CF26
+              CODING Friends
             </Link>
             <nav className="flex items-center gap-6 text-sm">
               {/* 필요 시 메뉴 추가 */}
