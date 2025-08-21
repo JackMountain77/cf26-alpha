@@ -5,13 +5,13 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 
 // Prisma enum Role 기준으로 맞추세요 (현재 schema에 Campus 없음)
-type AppRole = "Admin" | "Instructor" | "Student";
+type AppRole = "Admin" | "Campus" | "Instructor" | "Student";
 // 만약 Campus가 필요하면 schema.prisma의 enum Role에 Campus 추가 후 migrate 하세요.
 
 function getRoleFromUser(u: unknown): AppRole | undefined {
   if (u && typeof u === "object" && "role" in (u as Record<string, unknown>)) {
     const r = (u as { role?: string }).role;
-    if (r === "Admin" || r === "Instructor" || r === "Student") return r;
+    if (r === "Admin" || r === "Campus" || r === "Instructor" || r === "Student") return r;
   }
   return undefined;
 }
