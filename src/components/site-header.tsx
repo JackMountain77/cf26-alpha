@@ -14,7 +14,7 @@ export default function SiteHeader() {
           CODING Friends
         </Link>
 
-        <nav className="flex items-center gap-6 text-sm">
+        <nav className="flex items-center gap-4 text-sm">
           {/* 로그인 후에만 Dashboard 노출 */}
           {isAuthed && (
             <Link
@@ -25,7 +25,7 @@ export default function SiteHeader() {
             </Link>
           )}
 
-          {/* 로그인/로그아웃 토글 */}
+          {/* 로그인/회원가입/로그아웃 토글 */}
           {isAuthed ? (
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
@@ -36,20 +36,33 @@ export default function SiteHeader() {
                          focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-300
                          transition-colors cursor-pointer"
             >
-              Sign out
+              로그아웃
             </button>
           ) : (
-            <Link
-              href="/signin"
-              className="inline-flex items-center justify-center h-9 px-3 rounded-lg
-                         border border-blue-200 bg-blue-100 text-blue-700
-                         hover:bg-blue-600 hover:text-white hover:border-blue-600
-                         active:bg-blue-700
-                         focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-300
-                         transition-colors cursor-pointer"
-            >
-              Sign in
-            </Link>
+            <>
+              <Link
+                href="/signin"
+                className="inline-flex items-center justify-center h-9 px-3 rounded-lg
+                           border border-blue-200 bg-blue-100 text-blue-700
+                           hover:bg-blue-600 hover:text-white hover:border-blue-600
+                           active:bg-blue-700
+                           focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-300
+                           transition-colors cursor-pointer"
+              >
+                로그인
+              </Link>
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center h-9 px-3 rounded-lg
+                           border border-green-200 bg-green-100 text-green-700
+                           hover:bg-green-600 hover:text-white hover:border-green-600
+                           active:bg-green-700
+                           focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-300
+                           transition-colors cursor-pointer"
+              >
+                회원가입
+              </Link>
+            </>
           )}
         </nav>
       </div>
