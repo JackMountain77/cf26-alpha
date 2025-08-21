@@ -1,14 +1,23 @@
-// lib/auth.ts
 import type { NextAuthOptions } from "next-auth";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 
+// 앱에서 쓰는 역할 타입 (동일 유지)
 type AppRole = "Admin" | "Instructor" | "Student";
+
+// User 객체에서 역할을 안전하게 추출
+function getRoleFromUser(u: unknown): AppRole | undefined {
+  if (u && typeof u === "object" && "role" in (u as Record<string, unknown>)) {
+    const r = (u as { role?: AppRole }).role;
+    if (r === "Admin" || r === "Instructor" || r === "Student") return r;
+  }
+  return undefined;
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "database" }, // 유지
+  session: { strategy: "database" },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -16,26 +25,17 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    // database 전략에서는 token이 안 올 수 있음 → user 우선
     async session({ session, user }) {
-      if (!session.user) return session;
-
-      // 로그인 직후엔 user가 있음. 이후 요청에선 없을 수 있으니 DB에서 보강
-      let role: AppRole | undefined = (user as any)?.role;
-      if (!role && session.user.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: session.user.email },
-          select: { role: true },
-        });
-        role = (dbUser?.role as AppRole) ?? "Student";
+      if (session.user) {
+        // database 전략: user 기반으로 role 주입
+        session.user.role = getRoleFromUser(user) ?? "Student";
       }
-      (session.user as any).role = role ?? "Student";
       return session;
     },
-
-    // 있어도 무방하지만 database 전략에선 필수 아님
     async jwt({ token, user }) {
-      if (user) token.role = (user as any)?.role ?? "Student";
+      // 필수는 아니지만 로그인 직후 token에도 role 심어둠
+      const role = getRoleFromUser(user);
+      if (role) token.role = role;
       return token;
     },
   },

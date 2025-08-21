@@ -1,4 +1,4 @@
-import NextAuth, { DefaultSession } from "next-auth";
+import type { DefaultSession } from "next-auth";
 import "next-auth/jwt";
 
 /** 앱에서 쓰는 역할 타입 (현행 유지) */
