@@ -68,8 +68,15 @@ export default function SignUpCard() {
         email: normEmail,
         password,
         callbackUrl: "/onboarding",
-        redirect: true, // 기본 true이지만 명시
+        redirect: false, // 기본 true이지만 명시
       });
+      if (res?.ok) {
+        // res.url 대신 직접 우리가 원하는 경로로 이동
+        window.location.href = "/onboarding";
+      } else {
+        setError("회원가입에 실패했습니다. 다시 시도해 주세요.");
+        setLoading(false);
+      }
 
       // NOTE: redirect:true 이므로 여기 아래 코드는 실행되지 않습니다.
     } catch (err) {
