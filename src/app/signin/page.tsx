@@ -1,15 +1,12 @@
-"use client";
-import { signIn } from "next-auth/react";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
+import SignInCard from "./sign-in-card";
 
-export default function SignInPage() {
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <button
-        onClick={() => signIn("google")}
-        className="rounded-xl border px-4 py-2 hover:bg-gray-50 cursor-pointer"
-      >
-        Sign in with Google
-      </button>
-    </div>
-  );
+export default async function SignInPage() {
+  const session = await getServerSession(authOptions);
+  if (session) {
+    redirect("/dashboard"); // 이미 로그인 상태면 대시보드로
+  }
+  return <SignInCard />;
 }

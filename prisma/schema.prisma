@@ -19,6 +19,8 @@ model User {
   email         String   @unique
   name          String?
   image         String?
+  emailVerified DateTime?
+  
   // 최소 RBAC: Admin / Instructor / Student
   role          Role     @default(Student)
 
