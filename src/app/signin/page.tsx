@@ -6,7 +6,7 @@ import SignInCard from "./sign-in-card";
 export default async function SignInPage() {
   const session = await getServerSession(authOptions);
   if (session) {
-    redirect("/dashboard"); // 이미 로그인 상태면 대시보드로
+    redirect("/dashboard");
   }
   return <SignInCard />;
 }
