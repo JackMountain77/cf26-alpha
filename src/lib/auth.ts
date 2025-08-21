@@ -4,7 +4,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 
 // 앱에서 쓰는 역할 타입 (동일 유지)
-type AppRole = "Admin" | "Instructor" | "Student";
+type AppRole = "Admin" | "Campus" | "Instructor" | "Student";
 
 // User 객체에서 역할을 안전하게 추출
 function getRoleFromUser(u: unknown): AppRole | undefined {
