@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
@@ -14,16 +11,23 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
   name          String?
   image         String?
   emailVerified DateTime?
-  
-  // 최소 RBAC: Admin / Instructor / Student
+
   role          Role     @default(Student)
+
+  // --- NEW: Credentials용 비밀번호 해시 (Google은 null) ---
+  password         String?
+
+  // --- NEW: 온보딩 완료 여부 ---
+  profileCompleted Boolean  @default(false)
+
+  // --- NEW: 1:1 프로필 관계 ---
+  profile          Profile?
 
   accounts      Account[]
   sessions      Session[]
@@ -37,6 +41,47 @@ enum Role {
   Campus
   Instructor
   Student
+}
+
+// --- NEW: 성별/학교급 Enum ---
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNSPECIFIED
+}
+
+enum SchoolLevel {
+  ELEMENTARY
+  MIDDLE
+  HIGH
+  UNIVERSITY
+  GENERAL
+}
+
+// --- NEW: 추가정보 테이블 (Onboarding용) ---
+model Profile {
+  id          String      @id @default(cuid())
+
+  // User와 1:1
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id])
+
+  nickname    String?     // 공개이름
+  age         Int?
+  gender      Gender      @default(UNSPECIFIED)
+
+
+  // 학생 전용
+  schoolLevel SchoolLevel?
+  schoolName  String?
+  grade       String?     // 학년(문자 허용)
+
+  // 강사 전용
+  affiliation String?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model Account {
