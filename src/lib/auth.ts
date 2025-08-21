@@ -6,16 +6,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-// Prisma enum Role 기준으로 맞추세요 (현재 schema에 Campus 없음)
-type AppRole = "Admin" | "Campus" | "Instructor" | "Student";
-
-function getRoleFromUser(u: unknown): AppRole | undefined {
-  if (u && typeof u === "object" && "role" in (u as Record<string, unknown>)) {
-    const r = (u as { role?: string }).role;
-    if (r === "Admin" || r === "Campus" || r === "Instructor" || r === "Student") return r;
-  }
-  return undefined;
-}
+// types/next-auth.d.ts 에 정의된 타입을 사용하므로 AppRole 타입 정의는 필요 없음
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -23,18 +14,13 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "database" },
 
   secret: process.env.NEXTAUTH_SECRET,
-  //debug: process.env.NODE_ENV !== "production",  
 
   providers: [
-    // ✅ Google OAuth
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // (선택) 최초 구글 가입 후 Onboarding 으로 보내고 싶다면
-      // signIn() 호출 시 callbackUrl: "/onboarding" 를 사용하세요.
     }),
 
-    // ✅ Credentials (이메일/비밀번호)
     Credentials({
       name: "Credentials",
       credentials: {
@@ -47,7 +33,6 @@ export const authOptions: NextAuthOptions = {
 
         if (!email || !password) return null;
 
-        // 사용자 조회
         const user = await prisma.user.findUnique({
           where: { email },
           select: {
@@ -56,20 +41,19 @@ export const authOptions: NextAuthOptions = {
             name: true,
             image: true,
             role: true,
-            password: true,          // 해시 존재해야 함
-            profileCompleted: true,  // 세션에 올리기 위해 조회
+            password: true,
+            profileCompleted: true,
           },
         });
 
         if (!user || !user.password) {
-          // 존재하지 않거나, OAuth-only 계정(비번 없음)
           return null;
         }
 
         const ok = await bcrypt.compare(password, user.password);
         if (!ok) return null;
 
-        // NextAuth는 user 객체를 반환하면 로그인 성공으로 처리
+        // as any 제거: 확장된 User 타입에 맞춰서 반환
         return {
           id: user.id,
           email: user.email,
@@ -77,57 +61,61 @@ export const authOptions: NextAuthOptions = {
           image: user.image,
           role: user.role,
           profileCompleted: user.profileCompleted,
-        } as any;
+        };
       },
     }),
   ],
 
-  callbacks: {
-    /**
-     * DB 세션(strategy: "database")에서는 session 콜백의 두 번째 인자에
-     * 항상 DB상의 user 레코드가 들어옵니다.
-     */
-    async session({ session, user }) {
-      const role = getRoleFromUser(user) ?? "Student";
-      if (session.user) {
-        // role
-        (session.user as any).role = role;
-        // profileCompleted (온보딩 여부)
-        if ("profileCompleted" in (user as any)) {
-          (session.user as any).profileCompleted = (user as any).profileCompleted ?? false;
-        } else {
-          // 방어적으로 DB 조회 (이 케이스는 드뭅니다)
-          const u = await prisma.user.findUnique({
-            where: { email: session.user.email! },
-            select: { profileCompleted: true },
-          });
-          (session.user as any).profileCompleted = u?.profileCompleted ?? false;
+ callbacks: {
+    // signIn 콜백을 사용해서 반환값을 명확히 해줍니다.
+    async signIn({ user, account, profile }) {
+        if (account?.provider === 'credentials') {
+            // PrismaAdapter가 예상하는 AdapterUser 타입에 맞추기 위해 객체를 재구성
+            const newUser = {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                image: user.image
+            };
+            console.log('Credentials login, returning user:', newUser);
+            return newUser;
         }
-      }
-      return session;
+        
+        // 다른 프로바이더는 기본값으로 진행
+        return true;
+    },
+    
+    // session 콜백은 DB의 user 레코드를 받기 때문에 이제 정상적으로 동작할 것입니다.
+    async session({ session, user }) {
+        if (session.user && user) {
+            session.user.role = user.role;
+            session.user.profileCompleted = user.profileCompleted;
+        }
+        return session;
     },
 
-    /**
-     * DB 세션에서도 jwt 콜백은 호출되지만, 실제 세션 저장은 DB를 사용합니다.
-     * 여기서는 role 등을 토큰에 실어두는 보조용도로만 사용(선택).
-     */
+    // jwt 콜백은 DB 세션 전략에서는 보조 용도이므로 그대로 둡니다.
     async jwt({ token, user }) {
-      const role = getRoleFromUser(user);
-      if (role) (token as any).role = role;
+        if (user) {
+            token.role = user.role;
+            token.profileCompleted = user.profileCompleted;
+        }
+        return token;
+    },
+},
 
-      if (user && (user as any).profileCompleted !== undefined) {
-        (token as any).profileCompleted = (user as any).profileCompleted;
+
+  // events를 추가하여 signIn 이벤트를 처리
+  events: {
+    async signIn({ user, account, isNewUser }) {
+      console.log(`[events] signIn: user.id=${user?.id}, provider=${account?.provider}, isNewUser=${isNewUser}`);
+
+      // credentials로 로그인 했을 때만 추가 로그
+      if (account?.provider === "credentials") {
+        console.log("Credentials login successful, user object:", user);
       }
-      return token;
     },
   },
-
-  // events: {
-  //   async signIn({ user })       { console.log("[events] signIn", user?.email); },
-  //   async createUser({ user })   { console.log("[events] createUser", user?.email); },
-  //   async linkAccount({ user })  { console.log("[events] linkAccount", user?.email); },
-  //   async session({ session })   { console.log("[events] session", session?.user?.email); },    
-  // },
 
   pages: { signIn: "/signin" },
 };

@@ -71,7 +71,6 @@ model Profile {
   age         Int?
   gender      Gender      @default(UNSPECIFIED)
 
-
   // 학생 전용
   schoolLevel SchoolLevel?
   schoolName  String?

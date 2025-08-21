@@ -11,15 +11,6 @@ export default function SignInCard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // NOTE: Credentials Provider 연결 후 주석 해제하여 사용
-  // async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-  //   e.preventDefault();
-  //   await signIn("credentials", {
-  //     email,
-  //     password,
-  //     callbackUrl,
-  //   });
-  // }
 
   return (
     <main className="min-h-[70vh] flex items-center justify-center px-4">
