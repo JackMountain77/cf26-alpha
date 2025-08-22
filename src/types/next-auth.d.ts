@@ -1,6 +1,7 @@
 // src/types/next-auth.d.ts
 import { DefaultSession, DefaultUser } from "next-auth";
 import { DefaultJWT } from "next-auth/jwt";
+import NextAuth from "next-auth";
 
 /**
  * Extend NextAuth User shape (DB user shape may include these fields)
@@ -18,6 +19,9 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      email?: string | null;
+      name?: string | null;
+      image?: string | null;
       role: "Admin" | "Campus" | "Instructor" | "Student";
       profileCompleted: boolean;
     } & DefaultSession["user"];
@@ -33,6 +37,9 @@ declare module "next-auth/jwt" {
     userId?: string;
     role?: "Admin" | "Campus" | "Instructor" | "Student";
     profileCompleted?: boolean;
+    email?: string | null;
+    name?: string | null;
+    image?: string | null;
   }
 }
 

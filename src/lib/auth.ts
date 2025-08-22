@@ -53,6 +53,7 @@ export const authOptions: NextAuthOptions = {
         token.userId = (user as any).id;
         token.role = (user as any).role;
         token.profileCompleted = (user as any).profileCompleted ?? false;
+        token.email = (user as any).email ?? token.email;
       }
       return token;
     },
@@ -63,6 +64,7 @@ export const authOptions: NextAuthOptions = {
         id: token.userId as string,
         role: token.role,
         profileCompleted: token.profileCompleted ?? false,
+        email: token.email as string | undefined,
       };
       return session;
     },

@@ -1,4 +1,3 @@
-// app/onboarding/ui/onboarding-form.tsx
 "use client";
 
 import { useState } from "react";
@@ -8,36 +7,49 @@ type Gender = "MALE" | "FEMALE" | "OTHER" | "UNSPECIFIED";
 type SchoolLevel = "ELEMENTARY" | "MIDDLE" | "HIGH" | "UNIVERSITY" | "GENERAL";
 
 export default function OnboardingForm() {
+  // core states
   const [accountType, setAccountType] = useState<AccountType | "">("");
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
   const [age, setAge] = useState<number | "">("");
   const [gender, setGender] = useState<Gender>("UNSPECIFIED");
 
-  // 학생 전용
+  // student-only states
   const [schoolLevel, setSchoolLevel] = useState<SchoolLevel | "">("");
   const [schoolName, setSchoolName] = useState("");
   const [grade, setGrade] = useState("");
 
-  // 강사 전용
+  // teacher-only state
   const [affiliation, setAffiliation] = useState("");
 
+  // misc states
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // derived flags
+  const isStudent = accountType === "STUDENT";
+  const hideSchoolFields = isStudent && schoolLevel === "GENERAL"; // hide 학교/학년 when GENERAL
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!accountType) return setError("학생 또는 강사를 선택해 주세요.");
-    if (!name.trim() || !nickname.trim()) return setError("이름과 공개이름(별명)을 입력해 주세요.");
+    if (!name.trim() || !nickname.trim())
+      return setError("이름과 공개이름(별명)을 입력해 주세요.");
 
-    // 학생 선택 시 최소 학교급은 받는 편이 UX에 좋습니다(선택).
-    if (accountType === "STUDENT" && !schoolLevel) {
+    // For students, require school level (UX suggestion)
+    if (isStudent && !schoolLevel) {
       return setError("학생의 경우 학교급을 선택해 주세요.");
     }
 
     setError(null);
     setSaving(true);
+
+    // Normalize student-only payload: hide fields when GENERAL
+    const normalizedSchoolName =
+      isStudent && !hideSchoolFields ? schoolName || null : null;
+    const normalizedGrade =
+      isStudent && !hideSchoolFields ? grade || null : null;
 
     const res = await fetch("/api/profile", {
       method: "POST",
@@ -48,9 +60,9 @@ export default function OnboardingForm() {
         nickname: nickname.trim(),
         age: age === "" ? null : Number(age),
         gender,
-        schoolLevel: accountType === "STUDENT" ? schoolLevel || null : null,
-        schoolName: accountType === "STUDENT" ? schoolName || null : null,
-        grade: accountType === "STUDENT" ? grade || null : null,
+        schoolLevel: isStudent ? (schoolLevel || null) : null,
+        schoolName: normalizedSchoolName,
+        grade: normalizedGrade,
         affiliation: accountType === "TEACHER" ? affiliation || null : null,
       }),
     });
@@ -62,18 +74,25 @@ export default function OnboardingForm() {
       return;
     }
 
-    // 완료 → 대시보드
+    // done → dashboard
     window.location.replace("/dashboard");
   }
 
   return (
     <section className="mx-auto max-w-2xl">
       <div className="w-full rounded-2xl border p-6 shadow-sm space-y-6">
-        <h1 className="text-xl font-semibold">추가 정보 입력</h1>
-        <p className="text-sm text-gray-500">가입을 환영합니다! 다음 정보를 작성해 주세요.</p>
+        <h1 className="text-2xl font-bold text-blue-700">가입을 환영합니다!</h1>
+        <p className="text-base text-gray-700 font-medium">
+          {session?.user?.email} {/* next-auth 세션에서 이메일 표시 */}
+        </p>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          추가정보를 작성해 주세요.<br />
+          강사는 학생과 동일하게 서비스를 이용할 수 있으며<br />
+          화면공유 등 강사 서비스를 사용하실 수 있습니다.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* 역할 */}
+          {/* role */}
           <div className="grid gap-1.5">
             <label className="text-sm font-medium">역할</label>
             <div className="flex flex-wrap gap-3">
@@ -100,8 +119,8 @@ export default function OnboardingForm() {
             </div>
           </div>
 
-          {/* 이름/별명 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* name / nickname */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-1.5">
               <label className="text-sm font-medium">이름</label>
               <input
@@ -122,8 +141,8 @@ export default function OnboardingForm() {
             </div>
           </div>
 
-          {/* 나이/성별 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* age / gender */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-1.5">
               <label className="text-sm font-medium">나이</label>
               <input
@@ -151,9 +170,10 @@ export default function OnboardingForm() {
             </div>
           </div>
 
-          {/* 학생 전용 입력 */}
-          {accountType === "STUDENT" && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* student-only */}
+          {isStudent && (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {/* level select */}
               <div className="grid gap-1.5">
                 <label className="text-sm font-medium">구분</label>
                 <select
@@ -169,28 +189,35 @@ export default function OnboardingForm() {
                   <option value="GENERAL">일반</option>
                 </select>
               </div>
-              <div className="grid gap-1.5">
-                <label className="text-sm font-medium">학교</label>
-                <input
-                  className="rounded-lg border px-3 py-2"
-                  value={schoolName}
-                  onChange={(e) => setSchoolName(e.target.value)}
-                  placeholder="OO중학교"
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <label className="text-sm font-medium">학년</label>
-                <input
-                  className="rounded-lg border px-3 py-2"
-                  value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
-                  placeholder="예: 1학년"
-                />
-              </div>
+
+              {/* show 학교/학년 only when not GENERAL */}
+              {!hideSchoolFields && (
+                <>
+                  <div className="grid gap-1.5">
+                    <label className="text-sm font-medium">학교</label>
+                    <input
+                      className="rounded-lg border px-3 py-2"
+                      value={schoolName}
+                      onChange={(e) => setSchoolName(e.target.value)}
+                      placeholder="OO중학교"
+                    />
+                  </div>
+                  <div className="grid gap-1.5 pl-12">
+                    <label className="text-sm font-medium">학년</label>
+                    <input
+                      className="rounded-lg border px-3 py-2 w-30" // approx 3 chars width
+                      value={grade}
+                      maxLength={3}
+                      onChange={(e) => setGrade(e.target.value)}
+                      placeholder="예: 1학년"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
-          {/* 강사 전용 입력 */}
+          {/* teacher-only */}
           {accountType === "TEACHER" && (
             <div className="grid gap-1.5">
               <label className="text-sm font-medium">소속</label>
@@ -203,12 +230,14 @@ export default function OnboardingForm() {
             </div>
           )}
 
-          {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
+          {error && (
+            <p className="text-sm font-medium text-red-600">{error}</p>
+          )}
 
           <div className="pt-2">
             <button
               disabled={saving}
-              className="rounded-lg border px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-70"
+              className="rounded-lg border bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-70"
             >
               {saving ? "저장 중..." : "저장하고 시작하기"}
             </button>
