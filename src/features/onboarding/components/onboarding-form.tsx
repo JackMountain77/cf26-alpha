@@ -70,7 +70,7 @@ export default function OnboardingForm() {
     <section className="mx-auto max-w-2xl">
       <div className="w-full rounded-2xl border p-6 shadow-sm space-y-6">
         <h1 className="text-xl font-semibold">추가 정보 입력</h1>
-        <p className="text-sm text-gray-500">처음 한 번만 입력하면 돼요.</p>
+        <p className="text-sm text-gray-500">가입을 환영합니다! 다음 정보를 작성해 주세요.</p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* 역할 */}
@@ -147,7 +147,6 @@ export default function OnboardingForm() {
                 <option value="UNSPECIFIED">선택 안 함</option>
                 <option value="MALE">남</option>
                 <option value="FEMALE">여</option>
-                <option value="OTHER">기타</option>
               </select>
             </div>
           </div>
@@ -156,7 +155,7 @@ export default function OnboardingForm() {
           {accountType === "STUDENT" && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="grid gap-1.5">
-                <label className="text-sm font-medium">학교급</label>
+                <label className="text-sm font-medium">구분</label>
                 <select
                   className="rounded-lg border px-3 py-2"
                   value={schoolLevel}

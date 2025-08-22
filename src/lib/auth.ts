@@ -1,21 +1,28 @@
-// lib/auth.ts
+// src/lib/auth.ts
 import type { NextAuthOptions } from "next-auth";
-import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
+const googleProvider =
+  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ? Google({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      })
+    : null;
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  session: { strategy: "database" },
+  // 세션 테이블 미사용 (JWT)
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   secret: process.env.NEXTAUTH_SECRET,
 
+  // OAuth(User/Account) 저장은 어댑터 유지, 세션 테이블은 쓰지 않음
+  adapter: PrismaAdapter(prisma),
+
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
     Credentials({
       name: "Credentials",
       credentials: {
@@ -33,32 +40,31 @@ export const authOptions: NextAuthOptions = {
         const ok = await bcrypt.compare(password, user.password);
         if (!ok) return null;
 
-        return user; // DB User 그대로 반환
+        return user; // 필요한 필드는 jwt 콜백에서 싣습니다.
       },
     }),
+    ...(googleProvider ? [googleProvider] : []),
   ],
 
-  // ✅ 여기에서 events.signIn 정의
-  events: {
-    async signIn({ user, account }) {
-      if (account?.provider === "credentials") {
-        const sessionToken = crypto.randomUUID();
-        const sessionMaxAge = 30 * 24 * 60 * 60; // 30일
-        const expires = new Date(Date.now() + sessionMaxAge * 1000);
-
-        await prisma.session.create({
-          data: {
-            sessionToken,
-            userId: user.id,
-            expires,
-          },
-        });
-
-        console.log("✅ Forced Session insert for Credentials:", {
-          userId: user.id,
-          sessionToken,
-        });
+  callbacks: {
+    // 로그인 시 토큰에 필요한 정보 싣기
+    async jwt({ token, user }) {
+      if (user) {
+        token.userId = (user as any).id;
+        token.role = (user as any).role;
+        token.profileCompleted = (user as any).profileCompleted ?? false;
       }
+      return token;
+    },
+    // 클라이언트에서 사용할 세션 형태로 변환
+    async session({ session, token }) {
+      (session as any).user = {
+        ...(session.user || {}),
+        id: token.userId as string,
+        role: token.role,
+        profileCompleted: token.profileCompleted ?? false,
+      };
+      return session;
     },
   },
 

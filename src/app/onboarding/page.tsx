@@ -1,8 +1,7 @@
-// app/onboarding/page.tsx
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import OnboardingForm from "../../features/onboarding/components/onboarding-form";
+import OnboardingForm from "@/features/onboarding/components/onboarding-form";
 
 export default async function OnboardingPage() {
   const session = await getServerSession(authOptions);
@@ -11,7 +10,7 @@ export default async function OnboardingPage() {
   if (!session) redirect("/signin");
 
   // 이미 완료된 사용자는 대시보드로
-  const completed = (session.user as any)?.profileCompleted ?? false;
+  const completed = (session as any)?.user?.profileCompleted ?? false;
   if (completed) redirect("/dashboard");
 
   return <OnboardingForm />;

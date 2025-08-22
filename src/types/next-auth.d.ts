@@ -1,44 +1,42 @@
-// types/next-auth.d.ts
+// src/types/next-auth.d.ts
 import { DefaultSession, DefaultUser } from "next-auth";
 import { DefaultJWT } from "next-auth/jwt";
 
-// `role`과 `profileCompleted` 속성을 포함하는 커스텀 `User` 인터페이스 정의
-interface MyUser extends DefaultUser {
-  role?: "Admin" | "Campus" | "Instructor" | "Student";
-  profileCompleted?: boolean;
-}
-
-// Session 타입 확장
+/**
+ * Extend NextAuth User shape (DB user shape may include these fields)
+ */
 declare module "next-auth" {
+  interface User extends DefaultUser {
+    role?: "Admin" | "Campus" | "Instructor" | "Student";
+    profileCompleted?: boolean;
+  }
+
+  /**
+   * What the client receives via useSession/getServerSession
+   * Must mirror the fields you project in callbacks.session
+   */
   interface Session {
-    user?: MyUser;
+    user: {
+      id: string;
+      role: "Admin" | "Campus" | "Instructor" | "Student";
+      profileCompleted: boolean;
+    } & DefaultSession["user"];
   }
 }
 
-// JWT 타입 확장
+/**
+ * JWT payload stored in the token cookie
+ * Must mirror the fields you set in callbacks.jwt
+ */
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
+    userId?: string;
     role?: "Admin" | "Campus" | "Instructor" | "Student";
     profileCompleted?: boolean;
   }
 }
 
-
-// types/next-auth.d.ts (폴더/파일명은 예시)
-/*
-import NextAuth, { DefaultSession } from "next-auth";
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      role?: "Admin" | "Campus" | "Instructor" | "Student";
-    } & DefaultSession["user"];
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    role?: "Admin" | "Campus" | "Instructor" | "Student";
-  }
-}
-*/
+/**
+ * Make this file a module to ensure the augmentation is applied
+ */
+export {};
