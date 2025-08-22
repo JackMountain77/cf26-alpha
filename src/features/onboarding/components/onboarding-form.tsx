@@ -119,6 +119,7 @@ export default function OnboardingForm() {
                   value="STUDENT"
                   checked={accountType === "STUDENT"}
                   onChange={() => setAccountType("STUDENT")}
+                  required
                 />
                 학생
               </label>
@@ -296,7 +297,7 @@ export default function OnboardingForm() {
 
           <div className="pt-2 text-center">
             <button
-              disabled={saving || !agreePI}
+              disabled={saving}
               className="rounded-lg border bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-70"
             >
               {saving ? "저장 중..." : "저장하고 시작하기"}
