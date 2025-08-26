@@ -66,13 +66,13 @@ export default async function DashboardPage() {
   
   const profile = user.profile;
 
-  const sNickname = profile.nickname;
+  const sNickname = profile?.nickname;
   const sEmail = user.email;
   const sRole = roleLabel[user.role];
 
   const sUsername = user.name;
-  const sAge = profile.age;
-  const sGender = profile.gender;
+  const sAge = profile?.age;
+  const sGender = profile?.gender;
 
   const isStudent = user.role === "Student";
   const isInstructor = user.role === "Instructor";

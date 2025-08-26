@@ -48,16 +48,16 @@ export default async function EditPage() {
         ) : (
           <div
             className={`flex h-14 w-14 items-center justify-center rounded-full border text-lg text-gray-900
-              ${profile.gender === "MALE" ? "bg-blue-200" : ""}
-              ${profile.gender === "FEMALE" ? "bg-orange-200" : ""}
-              ${!profile.gender || profile.gender === "UNSPECIFIED" ? "bg-gray-200" : ""}
+              ${profile?.gender === "MALE" ? "bg-blue-200" : ""}
+              ${profile?.gender === "FEMALE" ? "bg-orange-200" : ""}
+              ${!profile?.gender || profile.gender === "UNSPECIFIED" ? "bg-gray-200" : ""}
             `}
           >
-            {profile.nickname?.charAt(0) ?? "?"}
+            {profile?.nickname?.charAt(0) ?? "?"}
           </div>
         )}
         <div>
-          <div className="font-medium">{profile.nickname ?? "사용자"}</div>
+          <div className="font-medium">{profile?.nickname ?? "사용자"}</div>
           <div className="text-sm text-gray-500">{user.email}</div>
           <div className="mt-1 text-sm">
             Role: <span className="font-semibold">{user.role}</span>
