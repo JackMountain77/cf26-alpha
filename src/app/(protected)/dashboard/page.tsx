@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Gender, Role, SchoolLevel } from "@prisma/client";
+import ProfileEditForm from "@/features/profile/components/profile-edit-form";
+import PasswordChangeForm from "@/features/profile/components/password-change-form";
 
 // 라벨 변환 (표시용)
 const roleLabel: Record<Role, string> = {
@@ -74,7 +76,7 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">My Page</h1>
         <span
           className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
             user.profileCompleted
@@ -85,7 +87,7 @@ export default async function DashboardPage() {
         >
           {user.profileCompleted ? "온보딩 완료" : "온보딩 미완료"}
         </span>
-      </header>
+      </header>  
 
       {/* 사용자 기본 정보 */}
       <section className="rounded-2xl border p-5 shadow-sm">
@@ -107,7 +109,24 @@ export default async function DashboardPage() {
           </div>
         </div>
       </section>
-
+      <div className="flex gap-2">
+        <a
+          href="/dashboard/edit"
+          className="rounded-lg border border-blue-500 px-3 py-1 text-sm 
+                    text-blue-600 hover:bg-blue-500 hover:text-white 
+                    transition-colors"
+        >
+          정보 수정
+        </a>
+        <a
+          href="/dashboard/password"
+          className="rounded-lg border border-orange-500 px-3 py-1 text-sm 
+                    text-orange-600 hover:bg-orange-500 hover:text-white 
+                    transition-colors"
+        >
+          비밀번호 변경
+        </a>
+      </div>
       {/* 프로필 상세 정보 */}
       <section className="rounded-2xl border p-5 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold">내 프로필</h2>

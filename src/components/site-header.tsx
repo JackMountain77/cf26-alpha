@@ -24,7 +24,7 @@ export default function SiteHeader() {
                          hover:bg-black hover:text-white
                          transition-colors cursor-pointer"
             >
-              Dashboard
+              마이 페이지
             </Link>
           )}
 
