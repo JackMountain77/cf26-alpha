@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     // 트랜잭션: User 업데이트 + Profile upsert
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.update({
-        where: { email: session.user.email },
+        where: { email: session.user.email! },
         data: {
           name,
           role: mappedRole,
