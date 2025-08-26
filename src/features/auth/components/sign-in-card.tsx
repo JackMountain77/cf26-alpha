@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-
+ 
 export default function SignInCard() {
   const params = useSearchParams();
   const callbackUrl = params.get("callbackUrl") || "/dashboard";

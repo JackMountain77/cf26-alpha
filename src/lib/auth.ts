@@ -62,7 +62,7 @@ export const authOptions: NextAuthOptions = {
       session.user = {
         ...(session.user || {}),
         id: token.userId as string,
-        role: token.role,
+        role: token.role ?? "Student",
         profileCompleted: token.profileCompleted ?? false,
         email: token.email as string | undefined,
       };
