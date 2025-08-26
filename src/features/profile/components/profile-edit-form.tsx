@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type AccountType = "STUDENT" | "TEACHER";
+type AccountType = "Student" | "Instructor"; // Prisma Role enum과 일치
 type SchoolLevel = "ELEMENTARY" | "MIDDLE" | "HIGH" | "UNIVERSITY" | "GENERAL";
 
 type ProfileEditFormProps = {
   user: {
     id: string;
     name: string | null;
-    role: AccountType;
+    role: AccountType;  // Prisma Role 기준
     profile?: {
       nickname: string | null;
       age: number | null;
@@ -41,7 +41,10 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const isStudent = user.role === "STUDENT";
+  // Prisma Role 값 그대로 사용
+  const isStudent = user.role === "Student";
+  const isInstructor = user.role === "Instructor";
+
   const hideSchoolFields = isStudent && schoolLevel === "GENERAL";
 
   async function handleSubmit(e: React.FormEvent) {
@@ -50,7 +53,7 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
     if (!name.trim()) return setError("이름은 필수입니다.");
     if (!nickname.trim()) return setError("별명은 필수입니다.");
     if (age === "" || Number.isNaN(age) || Number(age) <= 0)
-      return setError("나이는 1 이상의 숫자");
+      return setError("나이는 1 이상의 숫자여야 합니다.");
 
     setError(null);
     setSaving(true);
@@ -61,11 +64,11 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
       body: JSON.stringify({
         name,
         nickname,
-        age: typeof age === "string" ? null : Number(age),
+        age: typeof age === "string" && age === "" ? null : Number(age), 
         schoolLevel: isStudent ? schoolLevel || null : null,
         schoolName: isStudent && !hideSchoolFields ? schoolName : null,
         grade: isStudent && !hideSchoolFields ? grade : null,
-        affiliation: user.role === "TEACHER" ? affiliation : null,
+        affiliation: isInstructor ? affiliation : null,
       }),
     });
 
@@ -105,12 +108,15 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
         <input
           type="number"
           className="mt-1 w-full rounded-lg border px-3 py-2"
-          value={age ?? ""}
-          onChange={(e) => setAge(Number(e.target.value))}
+          value={age}
+          onChange={(e) => {
+            const val = e.target.value;
+            setAge(val === "" ? "" : Number(val)); // 👈 빈 값 허용
+          }}
         />
       </div>
 
-      {/* 학생 전용: 구분 + 학교 + 학년 */}
+      {/* 학생 전용 */}
       {isStudent && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
@@ -151,8 +157,8 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
         </div>
       )}
 
-      {/* 강사 전용: 소속 */}
-      {user.role === "TEACHER" && (
+      {/* 강사 전용 */}
+      {isInstructor && (
         <div>
           <label className="text-sm font-medium">소속</label>
           <input
@@ -170,14 +176,14 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg border bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-70"
+          className="rounded-lg border bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-70 cursor-pointer"
         >
           {saving ? "저장 중..." : "저장하기"}
         </button>
         <button
           type="button"
           onClick={() => router.push("/dashboard")}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-200"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-200 cursor-pointer"
         >
           취소
         </button>

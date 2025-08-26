@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";   
 import { Gender, Role, SchoolLevel } from "@prisma/client";
 import ProfileEditForm from "@/features/profile/components/profile-edit-form";
 import PasswordChangeForm from "@/features/profile/components/password-change-form";
@@ -47,6 +48,7 @@ export default async function DashboardPage() {
       name: true,
       image: true,
       role: true,
+      password: true,
       profileCompleted: true,
       marketingOptIn: true,
       profile: {
@@ -118,14 +120,17 @@ export default async function DashboardPage() {
         >
           정보 수정
         </a>
-        <a
-          href="/dashboard/password"
-          className="rounded-lg border border-orange-500 px-3 py-1 text-sm 
+        {user.password && (
+          <Link
+            href="/dashboard/password"
+            className="rounded-lg border border-orange-500 px-3 py-1 text-sm 
                     text-orange-600 hover:bg-orange-500 hover:text-white 
                     transition-colors"
-        >
-          비밀번호 변경
-        </a>
+          >
+            비밀번호 변경
+          </Link>
+        )}
+        
       </div>
       {/* 프로필 상세 정보 */}
       <section className="rounded-2xl border p-5 shadow-sm">
