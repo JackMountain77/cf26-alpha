@@ -5,6 +5,7 @@ import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { env } from "@/lib/env";
 
 const googleProvider =
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -17,7 +18,8 @@ const googleProvider =
 export const authOptions: NextAuthOptions = {
   // 세션 테이블 미사용 (JWT)
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
-  secret: process.env.NEXTAUTH_SECRET,
+  //secret: process.env.NEXTAUTH_SECRET,
+  secret: env.NEXTAUTH_SECRET,
 
   // OAuth(User/Account) 저장은 어댑터 유지, 세션 테이블은 쓰지 않음
   adapter: PrismaAdapter(prisma),
