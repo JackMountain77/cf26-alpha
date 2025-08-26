@@ -70,7 +70,7 @@ model Profile {
   userId      String      @unique
   user        User        @relation(fields: [userId], references: [id])
 
-  nickname    String?     // 공개이름
+  nickname    String?     @unique   // 공개 이름은 유니크
   age         Int?
   gender      Gender      @default(UNSPECIFIED)
 

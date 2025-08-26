@@ -7,6 +7,19 @@ export default function SiteHeader() {
   const { data: session } = useSession();
   const isAuthed = !!session?.user;
 
+  // session 이 아직 undefined(로드 중)일 때는 UI 숨기기
+  if (session === undefined) {
+    return (
+      <header className="border-b">
+        <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="font-semibold text-xl tracking-tight">
+            CODING Friends
+          </Link>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="border-b">
       <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">

@@ -3,10 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";   
+import Link from "next/link";
 import { Gender, Role, SchoolLevel } from "@prisma/client";
 
-// 라벨 변환 (표시용)
+// 라벨 변환
 const roleLabel: Record<Role, string> = {
   Admin: "관리자",
   Campus: "캠퍼스",
@@ -34,10 +34,7 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/signin?callbackUrl=/dashboard");
   }
- 
-  
 
-  // 세션의 이메일로 사용자+프로필 조회
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
     select: {
@@ -66,12 +63,19 @@ export default async function DashboardPage() {
   if (!user?.profileCompleted) {
     redirect("/onboarding");
   }
-
-
-  const displayName = user.name ?? "사용자";
-  const displayEmail = user.email ?? "";
-  const displayRole = roleLabel[user.role];
+  
   const profile = user.profile;
+
+  const sNickname = profile.nickname;
+  const sEmail = user.email;
+  const sRole = roleLabel[user.role];
+
+  const sUsername = user.name;
+  const sAge = profile.age;
+  const sGender = profile.gender;
+
+  const isStudent = user.role === "Student";
+  const isInstructor = user.role === "Instructor";
 
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-6">
@@ -83,105 +87,127 @@ export default async function DashboardPage() {
               ? "bg-green-50 text-green-700 ring-1 ring-green-200"
               : "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
           }`}
-          title={user.profileCompleted ? "온보딩 완료" : "온보딩 미완료"}
         >
           {user.profileCompleted ? "온보딩 완료" : "온보딩 미완료"}
         </span>
-      </header>  
+      </header>
 
-      {/* 사용자 기본 정보 */}
-      <section className="rounded-2xl border p-5 shadow-sm">
-        <div className="flex items-center gap-4">
+      {/* 상단 통합 정보 박스 */}
+      <section className="rounded-2xl border p-5 shadow-sm space-y-6">
+      {/* 상단 프로필 헤더 */}
+      <div className="flex items-center gap-6">
+        {/* 왼쪽: 아바타 + 기본 정보 */}
+        <div className="flex items-center gap-4 min-w-[200px]">
           {user.image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.image} alt="avatar" className="h-12 w-12 rounded-full border" />
+            <img
+              src={user.image}
+              alt="avatar"
+              className="h-16 w-16 rounded-full border"
+            />
           ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-gray-50 text-sm text-gray-500">
-              {displayName.charAt(0)}
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border bg-blue-200 text-lg text-gray-900">
+              {sNickname.charAt(0)}
             </div>
           )}
           <div>
-            <div className="font-medium">{displayName}</div>
-            <div className="text-sm text-gray-500">{displayEmail}</div>
-            <div className="mt-1 text-sm">
-              Role: <span className="font-medium">{displayRole}</span>
+            <div className="font-medium text-lg">{sNickname}</div>
+            <div className="text-sm text-black-500">{sEmail}</div>
+            <div className="mt-1 text-sm text-black-600 font-bold">
+              {sRole}
             </div>
           </div>
         </div>
-      </section>
-      <div className="flex gap-2">
-        <a
+
+        {/* 오른쪽: 프로필 상세 */}
+        {profile && (
+          <div className="flex-1 space-y-2 text-sm">
+            {/* 이름 */}
+            {sUsername && (
+              <div>
+                이름 :{" "}
+                <span className="font-bold">{sUsername}</span>
+              </div>
+            )}
+
+            {/* 성별 + 나이 */}
+            {(sGender || sAge) && (
+              <div>
+                성별 :{" "}
+                <span className="font-bold">
+                  {profile.gender ? genderLabel[profile.gender] : "-"}
+                </span>{" "}
+                / 나이 :{" "}
+                <span className="font-bold">
+                  {profile.age ?? "-"}
+                </span>
+              </div>
+            )}
+
+            {/* 학생 전용 */}
+            {isStudent && (
+              <>
+                <div>
+                  구분 :{" "}
+                  <span className="font-bold">
+                    {profile.schoolLevel
+                      ? schoolLevelLabel[profile.schoolLevel]
+                      : "-"}
+                  </span>
+                </div>
+                <div>
+                  학교 :{" "}
+                  <span className="font-bold">
+                    {profile.schoolName ?? "-"}
+                  </span>{" "}
+                  / 학년 :{" "}
+                  <span className="font-bold">
+                    {profile.grade ?? "-"}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {/* 강사 전용 */}
+            {isInstructor && (
+              <div>
+                소속 :{" "}
+                <span className="font-bold">
+                  {profile.affiliation ?? "-"}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 버튼 영역 */}
+      <div className="flex gap-2 pt-4 border-t">
+        <Link
           href="/dashboard/edit"
           className="rounded-lg border border-blue-500 px-3 py-1 text-sm 
                     text-blue-600 hover:bg-blue-500 hover:text-white 
                     transition-colors"
         >
           정보 수정
-        </a>
+        </Link>
         {user.password && (
           <Link
             href="/dashboard/password"
             className="rounded-lg border border-orange-500 px-3 py-1 text-sm 
-                    text-orange-600 hover:bg-orange-500 hover:text-white 
-                    transition-colors"
+                      text-orange-600 hover:bg-orange-500 hover:text-white 
+                      transition-colors"
           >
             비밀번호 변경
           </Link>
         )}
-        
       </div>
-      {/* 프로필 상세 정보 */}
-      <section className="rounded-2xl border p-5 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold">내 프로필</h2>
-        {!profile ? (
-          <p className="text-sm text-gray-500">추가 프로필 정보가 없습니다.</p>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* 왼쪽 컬럼 */}
-            <div className="space-y-3">
-              <div className="text-sm">
-                <div className="text-gray-500">공개이름(별명)</div>
-                <div className="font-medium">{profile.nickname ?? "-"}</div>
-              </div>
-              <div className="text-sm">
-                <div className="text-gray-500">나이</div>
-                <div className="font-medium">{profile.age ?? "-"}</div>
-              </div>
-              <div className="text-sm">
-                <div className="text-gray-500">성별</div>
-                <div className="font-medium">
-                  {profile.gender ? genderLabel[profile.gender] : "-"}
-                </div>
-              </div>
-              <div className="text-sm">
-                <div className="text-gray-500">마케팅 정보 수신</div>
-                <div className="font-medium">{user.marketingOptIn ? "동의" : "미동의"}</div>
-              </div>
-            </div>
+    </section>
 
-            {/* 오른쪽 컬럼 */}
-            <div className="space-y-3">
-              <div className="text-sm">
-                <div className="text-gray-500">구분(학생)</div>
-                <div className="font-medium">
-                  {profile.schoolLevel ? schoolLevelLabel[profile.schoolLevel] : "-"}
-                </div>
-              </div>
-              <div className="text-sm">
-                <div className="text-gray-500">학교</div>
-                <div className="font-medium">{profile.schoolName ?? "-"}</div>
-              </div>
-              <div className="text-sm">
-                <div className="text-gray-500">학년</div>
-                <div className="font-medium">{profile.grade ?? "-"}</div>
-              </div>
-              <div className="text-sm">
-                <div className="text-gray-500">소속(강사)</div>
-                <div className="font-medium">{profile.affiliation ?? "-"}</div>
-              </div>
-            </div>
-          </div>
-        )}
+
+      {/* 하단 비워둔 공간 (향후 강의/수업 리스트) */}
+      <section className="rounded-2xl border p-5 shadow-sm">
+        <p className="text-gray-400 text-sm">별명 외의 정보는 다른 사용자에게 공개되지 않습니다.</p>
       </section>
     </main>
   );

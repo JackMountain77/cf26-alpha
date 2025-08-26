@@ -4,14 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Role, SchoolLevel } from "@prisma/client";
 
-// type AccountType = "Student" | "Instructor"; // Prisma Role enum과 일치
-// type SchoolLevel = "ELEMENTARY" | "MIDDLE" | "HIGH" | "UNIVERSITY" | "GENERAL";
-
 type ProfileEditFormProps = {
   user: {
     id: string;
     name: string | null;
-    role: Role;   // ✅ Prisma Role enum 그대로 사용
+    role: Role;
     profile?: {
       nickname: string | null;
       age: number | null;
@@ -22,7 +19,6 @@ type ProfileEditFormProps = {
     } | null;
   };
 };
-
 
 export default function ProfileEditForm({ user }: ProfileEditFormProps) {
   const router = useRouter();
@@ -43,10 +39,8 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Prisma Role 값 그대로 사용
   const isStudent = user.role === "Student";
   const isInstructor = user.role === "Instructor";
-
   const hideSchoolFields = isStudent && schoolLevel === "GENERAL";
 
   async function handleSubmit(e: React.FormEvent) {
@@ -60,26 +54,41 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
     setError(null);
     setSaving(true);
 
-    const res = await fetch("/api/profile", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        nickname,
-        age: typeof age === "string" && age === "" ? null : Number(age), 
-        schoolLevel: isStudent ? schoolLevel || null : null,
-        schoolName: isStudent && !hideSchoolFields ? schoolName : null,
-        grade: isStudent && !hideSchoolFields ? grade : null,
-        affiliation: isInstructor ? affiliation : null,
-      }),
-    });
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          nickname,
+          age: typeof age === "string" && age === "" ? null : Number(age),
+          schoolLevel: isStudent ? schoolLevel || null : null,
+          schoolName: isStudent && !hideSchoolFields ? schoolName : null,
+          grade: isStudent && !hideSchoolFields ? grade : null,
+          affiliation: isInstructor ? affiliation : null,
+        }),
+      });
 
-    setSaving(false);
-    if (!res.ok) {
+      const data = await res.json();
+      console.log("response data:", data); // ✅ 응답 구조 확인
+
+      if (!res.ok) {
+        const msg =
+          data?.message ||                 // 서버에서 내려준 message
+          (data?.error === "NICKNAME_TAKEN" ? "이미 사용중인 별명입니다." : null) ||
+          "저장 중 오류가 발생했습니다.";
+
+        setError(msg);
+        return;
+      }
+
+      router.replace("/dashboard");
+    } catch (err) {
+      console.error("Profile update failed", err);
       setError("저장 중 오류가 발생했습니다.");
-      return;
+    } finally {
+      setSaving(false);
     }
-    router.replace("/dashboard");
   }
 
   return (
@@ -95,7 +104,7 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           />
         </div>
         <div>
-          <label className="text-sm font-medium">별명 *</label>
+          <label className="text-sm font-medium">별명(공개이름) *</label>
           <input
             className="mt-1 w-full rounded-lg border px-3 py-2"
             value={nickname}
@@ -113,7 +122,7 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           value={age}
           onChange={(e) => {
             const val = e.target.value;
-            setAge(val === "" ? "" : Number(val)); // 👈 빈 값 허용
+            setAge(val === "" ? "" : Number(val));
           }}
         />
       </div>
@@ -171,6 +180,7 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
         </div>
       )}
 
+      {/* 에러 메시지 */}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {/* 버튼 영역 */}

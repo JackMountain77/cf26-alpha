@@ -32,6 +32,7 @@ export default async function EditPage() {
   });
 
   if (!user) redirect("/dashboard");
+  const profile = user.profile;
 
   return (
     <main className="mx-auto max-w-2xl p-6 space-y-6">
@@ -41,12 +42,12 @@ export default async function EditPage() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={user.image} alt="avatar" className="h-14 w-14 rounded-full border" />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border bg-gray-50 text-sm text-gray-500">
-            {user.name?.charAt(0) ?? "?"}
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border bg-blue-200 text-lg text-gray-900">
+            {profile.nickname.charAt(0) ?? "?"}
           </div>
         )}
         <div>
-          <div className="font-medium">{user.name ?? "사용자"}</div>
+          <div className="font-medium">{profile.nickname ?? "사용자"}</div>
           <div className="text-sm text-gray-500">{user.email}</div>
           <div className="mt-1 text-sm">
             Role: <span className="font-semibold">{user.role}</span>

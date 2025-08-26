@@ -1,4 +1,3 @@
-// app/api/profile/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -54,7 +53,7 @@ export async function GET() {
     return NextResponse.json({ ok: true, user });
   } catch (err) {
     console.error("[PROFILE_GET]", err);
-    return NextResponse.json({ error: "SERVER_ERROR" }, { status: 500 });
+    return NextResponse.json({ error: "SERVER_ERROR", message: "조회 중 오류가 발생했습니다." }, { status: 500 });
   }
 }
 
@@ -88,6 +87,20 @@ export async function POST(req: Request) {
     if (!nickname) return NextResponse.json({ error: "NICKNAME_REQUIRED" }, { status: 400 });
     if (age !== null && (age <= 0 || !Number.isInteger(age))) {
       return NextResponse.json({ error: "INVALID_AGE" }, { status: 400 });
+    }
+
+    // ✅ 닉네임 중복 체크
+    if (nickname) {
+      const exists = await prisma.profile.findUnique({
+        where: { nickname },
+        select: { userId: true },
+      });
+      if (exists) {
+        return NextResponse.json(
+          { error: "NICKNAME_TAKEN", message: "이미 사용중인 별명입니다." },
+          { status: 400 }
+        );
+      }
     }
 
     const isStudent = accountType === "STUDENT";
@@ -141,9 +154,18 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ok: true, ...result });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[PROFILE_POST]", err);
-    return NextResponse.json({ error: "SERVER_ERROR" }, { status: 500 });
+
+    // ✅ DB 유니크 제약 에러 처리
+    if (err.code === "P2002" && err.meta?.target?.includes("nickname")) {
+      return NextResponse.json(
+        { error: "NICKNAME_TAKEN", message: "이미 사용중인 별명입니다." },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ error: "SERVER_ERROR", message: "저장 중 오류가 발생했습니다." }, { status: 500 });
   }
 }
 
@@ -172,13 +194,27 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "INVALID_AGE" }, { status: 400 });
     }
 
-    // 현재 유저 role 확인
+    // 현재 유저 role + 기존 닉네임 조회
     const user = await prisma.user.findUnique({
       where: { email: session.user.email! },
-      select: { id: true, role: true },
+      select: { id: true, role: true, profile: { select: { nickname: true } } },
     });
 
     if (!user) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+
+    // ✅ 닉네임 중복 체크 (자기 자신 제외)
+    if (nickname && nickname !== user.profile?.nickname) {
+      const exists = await prisma.profile.findFirst({
+        where: { nickname },
+        select: { userId: true },
+      });
+      if (exists) {
+        return NextResponse.json(
+          { error: "NICKNAME_TAKEN", message: "이미 사용중인 별명입니다." },
+          { status: 400 }
+        );
+      }
+    }
 
     const isStudent = user.role === Role.Student;
     const isInstructor = user.role === Role.Instructor;
@@ -212,7 +248,6 @@ export async function PUT(req: Request) {
               schoolName: finalSchoolName,
               grade: finalGrade,
               affiliation: isInstructor ? affiliation : null,
-              
             },
           },
         },
@@ -221,8 +256,16 @@ export async function PUT(req: Request) {
     });
 
     return NextResponse.json({ ok: true, user: updated });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[PROFILE_PUT]", err);
-    return NextResponse.json({ error: "SERVER_ERROR" }, { status: 500 });
+
+    if (err.code === "P2002" && err.meta?.target?.includes("nickname")) {
+      return NextResponse.json(
+        { error: "NICKNAME_TAKEN", message: "이미 사용중인 별명입니다." },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ error: "SERVER_ERROR", message: "저장 중 오류가 발생했습니다." }, { status: 500 });
   }
 }

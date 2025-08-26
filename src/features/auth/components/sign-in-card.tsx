@@ -102,10 +102,8 @@ export default function SignInCard() {
             type="submit"
             disabled={loading}
             className="w-full rounded-lg border px-4 py-2
-                       border-black text-black
-                       hover:bg-black hover:text-white
-                       transition-colors cursor-pointer
-                       disabled:opacity-50"
+                       bg-gray-600 text-white hover:bg-black
+                       transition-colors disabled:opacity-70 cursor-pointer"
           >
             {loading ? "로그인 중..." : "이메일로 로그인"}
           </button>

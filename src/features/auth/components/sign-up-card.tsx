@@ -183,8 +183,8 @@ export default function SignUpCard() {
             type="submit"
             disabled={loading}
             className="w-full rounded-lg border px-4 py-2
-                       bg-blue-600 text-white hover:bg-blue-700
-                       transition-colors disabled:opacity-70"
+                       bg-blue-500 text-white hover:bg-blue-700
+                       transition-colors disabled:opacity-70 cursor-pointer"
           >
             {loading ? "가입 중..." : "이메일로 회원가입"}
           </button>
