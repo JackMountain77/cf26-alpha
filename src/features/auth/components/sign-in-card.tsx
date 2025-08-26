@@ -2,7 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
  
 export default function SignInCard() {
   const params = useSearchParams();
@@ -79,7 +79,7 @@ export default function SignInCard() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 outline-none
                          focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
               placeholder="you@example.com"
@@ -97,7 +97,7 @@ export default function SignInCard() {
               autoComplete="current-password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 outline-none
                          focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
               placeholder="••••••••"
