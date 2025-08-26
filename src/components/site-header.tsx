@@ -19,7 +19,10 @@ export default function SiteHeader() {
           {isAuthed && (
             <Link
               href="/dashboard"
-              className="text-gray-700 hover:text-gray-900 transition-colors"
+              className="px-3 h-9 flex items-center justify-center rounded-lg
+                         border border-black text-black
+                         hover:bg-black hover:text-white
+                         transition-colors cursor-pointer"
             >
               Dashboard
             </Link>
@@ -29,11 +32,9 @@ export default function SiteHeader() {
           {isAuthed ? (
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="inline-flex items-center justify-center h-9 px-3 rounded-lg
-                         border border-red-200 bg-red-100 text-red-700
-                         hover:bg-red-600 hover:text-white hover:border-red-600
-                         active:bg-red-700
-                         focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-300
+              className="px-3 h-9 flex items-center justify-center rounded-lg
+                         border border-red-500 text-red-600
+                         hover:bg-red-600 hover:text-white
                          transition-colors cursor-pointer"
             >
               로그아웃
@@ -42,22 +43,18 @@ export default function SiteHeader() {
             <>
               <Link
                 href="/signin"
-                className="inline-flex items-center justify-center h-9 px-3 rounded-lg
-                           border border-blue-200 bg-blue-100 text-blue-700
-                           hover:bg-blue-600 hover:text-white hover:border-blue-600
-                           active:bg-blue-700
-                           focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-300
+                className="px-3 h-9 flex items-center justify-center rounded-lg
+                           border border-black text-black
+                           hover:bg-black hover:text-white
                            transition-colors cursor-pointer"
               >
                 로그인
               </Link>
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center h-9 px-3 rounded-lg
-                           border border-green-200 bg-green-100 text-green-700
-                           hover:bg-green-600 hover:text-white hover:border-green-600
-                           active:bg-green-700
-                           focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-300
+                className="px-3 h-9 flex items-center justify-center rounded-lg
+                           border border-black text-black
+                           hover:bg-black hover:text-white
                            transition-colors cursor-pointer"
               >
                 회원가입

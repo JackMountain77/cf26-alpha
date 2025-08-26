@@ -7,8 +7,8 @@ import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 
 export const metadata: Metadata = {
-  title: "CF26",
-  description: "CF26 alpha",
+  title: "CODING Friends",
+  description: "교육기관, 강사, 학생 모두의 코딩교육을 위한 오픈 플랫폼 코딩프렌즈",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
