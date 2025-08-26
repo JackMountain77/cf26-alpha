@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type AccountType = "STUDENT" | "TEACHER";
 type Gender = "MALE" | "FEMALE" | "OTHER" | "UNSPECIFIED";
@@ -9,6 +10,7 @@ type SchoolLevel = "ELEMENTARY" | "MIDDLE" | "HIGH" | "UNIVERSITY" | "GENERAL";
 
 export default function OnboardingForm() {
   const { data: session } = useSession();
+  const router = useRouter();
 
   // core states
   const [accountType, setAccountType] = useState<AccountType | "">("");
@@ -85,7 +87,8 @@ export default function OnboardingForm() {
       return;
     }
 
-    window.location.replace("/dashboard");
+    // 저장 성공 → 대시보드로 이동
+    router.replace("/dashboard");
   }
 
   return (
