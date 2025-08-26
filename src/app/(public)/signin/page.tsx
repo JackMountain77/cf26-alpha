@@ -7,22 +7,8 @@ export const metadata = {
   title: "Sign in",
 };
 
-// export default async function SignInPage() {
-//   const session = await getServerSession(authOptions);
-//   if (session) redirect("/dashboard");
-//   return <SignInCard />;
-// }
 export default async function SignInPage() {
   const session = await getServerSession(authOptions);
-
-  if (session) {
-    const completed = session.user?.profileCompleted ?? false;
-    if (completed) {
-      redirect("/dashboard");
-    } else {
-      redirect("/onboarding");
-    }
-  }
-
+  if (session) redirect("/dashboard");
   return <SignInCard />;
 }

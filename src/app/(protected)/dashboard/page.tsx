@@ -33,6 +33,9 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/signin?callbackUrl=/dashboard");
   }
+  if (!session?.user.profileCompleted) {
+    redirect("/onboarding");
+  }
 
   // 세션의 이메일로 사용자+프로필 조회
   const user = await prisma.user.findUnique({
