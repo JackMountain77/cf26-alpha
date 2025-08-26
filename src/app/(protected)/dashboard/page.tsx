@@ -33,9 +33,8 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/signin?callbackUrl=/dashboard");
   }
-  if (!session?.user.profileCompleted) {
-    redirect("/onboarding");
-  }
+ 
+  
 
   // 세션의 이메일로 사용자+프로필 조회
   const user = await prisma.user.findUnique({
@@ -62,13 +61,10 @@ export default async function DashboardPage() {
     },
   });
 
-  if (!user) {
-    // 이 케이스는 드물지만, 안전망
-    redirect("/signin?callbackUrl=/dashboard");
+  if (!user?.profileCompleted) {
+    redirect("/onboarding");
   }
 
-  // (옵션) 온보딩 미완료 시 온보딩으로 보내고 싶다면:
-  // if (!user.profileCompleted) redirect("/onboarding");
 
   const displayName = user.name ?? "사용자";
   const displayEmail = user.email ?? "";
