@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { toast } from "sonner";
 
 export default function PasswordChangeForm() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -45,10 +44,6 @@ export default function PasswordChangeForm() {
     } 
 
     // 성공 처리 (알림 또는 페이지 이동)
-    
-    // toast.success("비밀번호 변경 완료 🎉", {
-    //     description: "성공적으로 변경되었습니다.",
-    //   });
     alert(data.message || "비밀번호가 성공적으로 변경되었습니다. 다시 로그인해 주세요.");
     await signOut({ callbackUrl: "/signin" });
     setCurrentPassword("");
