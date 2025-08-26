@@ -40,10 +40,20 @@ export default async function EditPage() {
       <section className="rounded-2xl border p-5 shadow-sm flex items-center gap-4">
         {user.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={user.image} alt="avatar" className="h-14 w-14 rounded-full border" />
+          <img
+            src={user.image}
+            alt="avatar"
+            className="h-14 w-14 rounded-full border"
+          />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border bg-blue-200 text-lg text-gray-900">
-            {profile.nickname.charAt(0) ?? "?"}
+          <div
+            className={`flex h-14 w-14 items-center justify-center rounded-full border text-lg text-gray-900
+              ${profile.gender === "MALE" ? "bg-blue-200" : ""}
+              ${profile.gender === "FEMALE" ? "bg-orange-200" : ""}
+              ${!profile.gender || profile.gender === "UNSPECIFIED" ? "bg-gray-200" : ""}
+            `}
+          >
+            {profile.nickname?.charAt(0) ?? "?"}
           </div>
         )}
         <div>

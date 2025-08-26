@@ -57,38 +57,49 @@ export default function OnboardingForm() {
     setError(null);
     setSaving(true);
 
-    const normalizedSchoolName =
-      isStudent && !hideSchoolFields ? schoolName || null : null;
-    const normalizedGrade =
-      isStudent && !hideSchoolFields ? grade || null : null;
+   try {
+      const normalizedSchoolName =
+        isStudent && !hideSchoolFields ? schoolName || null : null;
+      const normalizedGrade =
+        isStudent && !hideSchoolFields ? grade || null : null;
 
-    const res = await fetch("/api/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accountType,
-        name: name.trim(),
-        nickname: nickname.trim(),
-        age: typeof age === "string" && age === "" ? null : Number(age),
-        gender,
-        schoolLevel: isStudent ? (schoolLevel || null) : null,
-        schoolName: normalizedSchoolName,  // 옵션
-        grade: normalizedGrade,            // 옵션
-        affiliation: accountType === "TEACHER" ? affiliation || null : null, // 옵션
-        // 선택 동의값은 필요 시 함께 전송
-        marketingOptIn: agreeMarketing,
-      }),
-    });
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountType,
+          name: name.trim(),
+          nickname: nickname.trim(),
+          age: age === null ? null : Number(age),
+          gender,
+          schoolLevel: isStudent ? schoolLevel || null : null,
+          schoolName: normalizedSchoolName,
+          grade: normalizedGrade,
+          affiliation: accountType === "TEACHER" ? affiliation || null : null,
+          marketingOptIn: agreeMarketing,
+        }),
+      });
 
-    setSaving(false);
+      const data = await res.json();
 
-    if (!res.ok) {
+      if (!res.ok) {
+        const msg =
+          data?.message ||
+          (data?.error === "NICKNAME_TAKEN"
+            ? "이미 사용중인 별명입니다."
+            : null) ||
+          "저장 중 오류가 발생했습니다. 다시 시도해 주세요.";
+        setError(msg);
+        return;
+      }
+
+      router.replace("/dashboard");
+    } catch (err) {
+      console.error("Onboarding failed", err);
       setError("저장 중 오류가 발생했습니다. 다시 시도해 주세요.");
-      return;
+    } finally {
+      setSaving(false);
     }
-
-    // 저장 성공 → 대시보드로 이동
-    router.replace("/dashboard");
   }
 
   return (

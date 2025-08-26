@@ -70,14 +70,12 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
       });
 
       const data = await res.json();
-      console.log("response data:", data); // ✅ 응답 구조 확인
 
       if (!res.ok) {
         const msg =
-          data?.message ||                 // 서버에서 내려준 message
+          data?.message ||
           (data?.error === "NICKNAME_TAKEN" ? "이미 사용중인 별명입니다." : null) ||
           "저장 중 오류가 발생했습니다.";
-
         setError(msg);
         return;
       }
@@ -120,10 +118,7 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           type="number"
           className="mt-1 w-full rounded-lg border px-3 py-2"
           value={age}
-          onChange={(e) => {
-            const val = e.target.value;
-            setAge(val === "" ? "" : Number(val));
-          }}
+          onChange={(e) => setAge(e.target.value === "" ? "" : Number(e.target.value))}
         />
       </div>
 

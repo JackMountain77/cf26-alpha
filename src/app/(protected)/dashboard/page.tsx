@@ -106,8 +106,14 @@ export default async function DashboardPage() {
               className="h-16 w-16 rounded-full border"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border bg-blue-200 text-lg text-gray-900">
-              {sNickname.charAt(0)}
+            
+            <div 
+              className={`flex h-16 w-16 items-center justify-center rounded-full border text-lg text-gray-900
+                ${sGender === "MALE" ? "bg-blue-200" : ""}
+                ${sGender === "FEMALE" ? "bg-orange-200" : ""}
+                ${!sGender || sGender === "UNSPECIFIED" ? "bg-gray-200" : ""}
+              `}>
+              {sNickname?.charAt(0)}
             </div>
           )}
           <div>
