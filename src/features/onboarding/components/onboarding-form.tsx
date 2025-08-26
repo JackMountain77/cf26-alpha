@@ -67,7 +67,7 @@ export default function OnboardingForm() {
         accountType,
         name: name.trim(),
         nickname: nickname.trim(),
-        age: age === "" ? null : Number(age),
+        age: typeof age === "string" && age === "" ? null : Number(age),
         gender,
         schoolLevel: isStudent ? (schoolLevel || null) : null,
         schoolName: normalizedSchoolName,  // 옵션
