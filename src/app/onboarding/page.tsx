@@ -10,7 +10,7 @@ export default async function OnboardingPage() {
   if (!session) redirect("/signin");
 
   // 이미 완료된 사용자는 대시보드로
-  const completed = (session as any)?.user?.profileCompleted ?? false;
+  const completed = session.user?.profileCompleted ?? false;
   if (completed) redirect("/dashboard");
 
   return <OnboardingForm />;

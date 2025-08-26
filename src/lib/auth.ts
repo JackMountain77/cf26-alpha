@@ -50,16 +50,16 @@ export const authOptions: NextAuthOptions = {
     // 로그인 시 토큰에 필요한 정보 싣기
     async jwt({ token, user }) {
       if (user) {
-        token.userId = (user as any).id;
-        token.role = (user as any).role;
-        token.profileCompleted = (user as any).profileCompleted ?? false;
-        token.email = (user as any).email ?? token.email;
+        token.userId = user.id;
+        token.role = user.role;
+        token.profileCompleted = user.profileCompleted ?? false;
+        token.email = user.email ?? token.email;
       }
       return token;
     },
     // 클라이언트에서 사용할 세션 형태로 변환
     async session({ session, token }) {
-      (session as any).user = {
+      session.user = {
         ...(session.user || {}),
         id: token.userId as string,
         role: token.role,
