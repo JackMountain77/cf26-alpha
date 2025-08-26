@@ -5,23 +5,20 @@ import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { env } from "@/lib/env";
+import { env } from "@/lib/env";   // ✅ 반드시 env 사용
 
-const googleProvider =
-  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-    ? Google({
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      })
-    : null;
+const googleProvider = Google({
+  clientId: env.GOOGLE_CLIENT_ID,
+  clientSecret: env.GOOGLE_CLIENT_SECRET,
+});
 
 export const authOptions: NextAuthOptions = {
   // 세션 테이블 미사용 (JWT)
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
-  //secret: process.env.NEXTAUTH_SECRET,
+
+  // ✅ 반드시 env에서 읽기
   secret: env.NEXTAUTH_SECRET,
 
-  // OAuth(User/Account) 저장은 어댑터 유지, 세션 테이블은 쓰지 않음
   adapter: PrismaAdapter(prisma),
 
   providers: [
@@ -42,14 +39,13 @@ export const authOptions: NextAuthOptions = {
         const ok = await bcrypt.compare(password, user.password);
         if (!ok) return null;
 
-        return user; // 필요한 필드는 jwt 콜백에서 싣습니다.
+        return user;
       },
     }),
-    ...(googleProvider ? [googleProvider] : []),
+    googleProvider, // ✅ env 기반으로 항상 주입
   ],
 
   callbacks: {
-    // 로그인 시 토큰에 필요한 정보 싣기
     async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;
@@ -59,7 +55,6 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    // 클라이언트에서 사용할 세션 형태로 변환
     async session({ session, token }) {
       session.user = {
         ...(session.user || {}),
