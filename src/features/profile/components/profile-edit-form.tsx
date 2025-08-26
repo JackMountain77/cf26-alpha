@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Role, SchoolLevel } from "@prisma/client";
 
-type AccountType = "Student" | "Instructor"; // Prisma Role enum과 일치
-type SchoolLevel = "ELEMENTARY" | "MIDDLE" | "HIGH" | "UNIVERSITY" | "GENERAL";
+// type AccountType = "Student" | "Instructor"; // Prisma Role enum과 일치
+// type SchoolLevel = "ELEMENTARY" | "MIDDLE" | "HIGH" | "UNIVERSITY" | "GENERAL";
 
 type ProfileEditFormProps = {
   user: {
     id: string;
     name: string | null;
-    role: AccountType;  // Prisma Role 기준
+    role: Role;   // ✅ Prisma Role enum 그대로 사용
     profile?: {
       nickname: string | null;
       age: number | null;
@@ -21,6 +22,7 @@ type ProfileEditFormProps = {
     } | null;
   };
 };
+
 
 export default function ProfileEditForm({ user }: ProfileEditFormProps) {
   const router = useRouter();

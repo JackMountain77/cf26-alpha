@@ -5,8 +5,6 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";   
 import { Gender, Role, SchoolLevel } from "@prisma/client";
-import ProfileEditForm from "@/features/profile/components/profile-edit-form";
-import PasswordChangeForm from "@/features/profile/components/password-change-form";
 
 // 라벨 변환 (표시용)
 const roleLabel: Record<Role, string> = {
